@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="stylesheet.css">
+    <meta charset="UTF-8">
+    <title>iTunes API Tutorial</title>
+    <link rel="shortcut icon" href="http://findicons.com/files/icons/2770/ios_7_icons/512/music.png">
+</head>
+
+<body class="lime accent-1">
+    <nav>
+        <div class="nav-wrapper teal darken-2">
+            <form>
+                <div class="input-field">
+                    <input id="search" type="search" required>
+                    <label class="label-icon" for="search"><i class="material-icons">search</i></label>
+                    <i class="material-icons">close</i>
+                </div>
+            </form>
+        </div>
+    </nav>
+
+    <div class="slider">
+        <ul class="slides black" id="albums">
+
+        </ul>
+    </div>
+    <div class="container">
+    <ul id="songs"></ul>
+</div>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"
+        integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script>
+        // $(document).ready(... This is jQuery function that runs when the page is loaded.
+        // Do you want to load when the page is ready or when some button is clicked?
+        // Are you waiting for an input from the user???
+        $("form").submit(function (event) {
+            event.preventDefault()
+            var query = $("#search").val()
+            $("form")[0].reset()
+            $("#search").blur()
+            $.ajax({
+                url: `http://itunes.apple.com/search?term=${query}&entity=album&limit=5`,
+                dataType: 'JSONP'
+            })
+                .done(function (data) {
+                    console.log(data);
+                    // add code for when response from apple comes back.
+                    $('#albums').html("")
+                    for (var i = 0; i < data.results.length; i++) {
+                        if (data.results[i].collectionName) {
+                            //  $('#songs').append("<li>" + data.results[i].collectionName + "</li>");
+                            data.results[i].artworkUrl100 = data.results[i].artworkUrl100.replace("100x100", "1500x1500")
+                            $('#albums').append(`
+                          <li>
+                            <img src="${data.results[i].artworkUrl100}"> <!-- random image -->
+                            <div class="caption center-align">
+                            <h3>${data.results[i].collectionName}</h3>
+                            <h5 class="light grey-text text-lighten-3">${data.results[i].primaryGenreName}</h5>
+                            <a class="waves-effect albumLookup waves-light btn" collectionId="${data.results[i].collectionId}">list songs</a>
+                            </div>
+                        </li>
+                          `)
+                        }
+                    }
+                    var elems = document.querySelectorAll('.slider');
+                    var instances = M.Slider.init(elems);
+                    $(".albumLookup").click(function () {
+                        var collectionId = $(this).attr("collectionId")
+                        searchForSongs(collectionId)
+                    })
+                })
+                .fail(function (data) {
+                    console.log(data);
+                    $('#songs').append(data.status);
+                })
+        });// End of on ready part
+
+        function searchForSongs(id) {
+            $.ajax({
+                url: `http://itunes.apple.com/lookup?id=${id}&entity=song`,
+                dataType: 'JSONP'
+            })
+                .done(function (data) {
+                    console.log(data);
+                    $('#songs').html("")
+                    for (var i = 0; i < data.results.length; i++) {
+                        if (data.results[i].trackName) {
+                            $('#songs').append(`<li>
+                           <h5> ${data.results[i].trackName}</h5>
+                           <audio controls>
+                        
+                            <source src="${data.results[i].previewUrl}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                            </audio>
+                            </li>`);
+                        }
+                    }
+                    onlyAllowOnePlayer()
+                })
+                .fail(function (data) {
+                    console.log(data);
+                    $('#songs').append(data.status);
+                })
+        }
+
+        function onlyAllowOnePlayer() {
+            $(function () {
+                $("audio").on("play", function () {
+                    $("audio").not(this).each(function (index, audio) {
+                        audio.pause();
+                    });
+                });
+            });
+        }
+
+
+
+    </script>
+</body>
+
+</html>
