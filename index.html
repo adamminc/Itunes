@@ -44,7 +44,7 @@
             $("form")[0].reset()
             $("#search").blur()
             $.ajax({
-                url: `http://itunes.apple.com/search?term=${query}&entity=album&limit=5`,
+                url: `https://itunes.apple.com/search?term=${query}&entity=album&limit=5`,
                 dataType: 'JSONP'
             })
                 .done(function (data) {
