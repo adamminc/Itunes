@@ -83,7 +83,7 @@
 
         function searchForSongs(id) {
             $.ajax({
-                url: `http://itunes.apple.com/lookup?id=${id}&entity=song`,
+                url: `https://itunes.apple.com/lookup?id=${id}&entity=song`,
                 dataType: 'JSONP'
             })
                 .done(function (data) {
